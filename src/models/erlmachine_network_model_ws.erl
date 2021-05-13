@@ -20,6 +20,7 @@ startup(UID, State, Opt, Env) ->
     io:format("~n~p:startup(~p, ~p, ~p, ~p)~n", [?MODULE, UID, State, Opt, Env]),
 
     Host = erlmachine_network:host(Env), Port = erlmachine_network:port(Env),
+    Path = erlmachine_network:path(Env),
 
     Transport = transport(Opt),
     %Protocols = protocols(Opt),
@@ -27,7 +28,7 @@ startup(UID, State, Opt, Env) ->
     {ok, Pid} = gun:open(Host, Port, #{ 'transport' => Transport, 'protocols' => [http] }),
     {ok, _} = gun:await_up(Pid),
 
-    Path = erlmachine_network:path(Opt), Ref = gun:ws_upgrade(Pid, Path),
+    Ref = gun:ws_upgrade(Pid, Path),
 
     erlmachine:success(State#{ pid => Pid, ref => Ref }).
 

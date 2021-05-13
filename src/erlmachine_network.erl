@@ -7,9 +7,9 @@
 -type path() :: list().
 
 %%% Options
--spec path(Opt::[term()]) -> path().
-path(Opt) ->
-    Path = proplists:get_value(<<"path">>, Opt, <<"/">>),
+-spec path(Env::map()) -> path().
+path(Env) ->
+    Path = maps:get(<<"path">>, Env, <<"/">>), true = is_binary(Path),
     binary_to_list(Path).
 
 %%% Env
