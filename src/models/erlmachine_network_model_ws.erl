@@ -123,7 +123,7 @@ opt({<<"transport">>, Transport}, Acc) when Transport == <<"tcp">>;
                                             Transport == <<"tls">> ->
     Acc#{ 'transport' => Transport };
 opt({<<"protocols">>, Protocols}, Acc) when is_list(Protocols) ->
-    Res = [binary_to_atom(P)|| P <- Protocols, P == <<"http">>, P == <<"http2">>],
+    Res = [binary_to_atom(P, utf8)|| P <- Protocols, P == <<"http">>, P == <<"http2">>],
     Acc#{ 'protocols' => Res};
 opt(_, Acc) ->
     Acc.

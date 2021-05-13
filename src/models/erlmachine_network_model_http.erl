@@ -166,7 +166,7 @@ opt({<<"transport">>, Transport}, Acc) ->
     Acc#{ 'transport' => Transport };
 
 opt({<<"protocols">>, Protocols}, Acc) ->
-    Res = [binary_to_atom(P)|| P <- Protocols],
+    Res = [binary_to_atom(P, utf8)|| P <- Protocols],
 
     Acc#{ 'protocols' => Res};
 
