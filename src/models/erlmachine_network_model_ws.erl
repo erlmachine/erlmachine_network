@@ -20,9 +20,11 @@ startup(UID, State, Opt, Env) ->
     io:format("~n~p:startup(~p, ~p, ~p, ~p)~n", [?MODULE, UID, State, Opt, Env]),
 
     Host = erlmachine_network:host(Env), Port = erlmachine_network:port(Env),
-    GunOpt = lists:foldl(fun opt/2, #{}, Opt),
 
-    {ok, Pid} = gun:open(Host, Port, GunOpt),
+    Transport = transport(Opt),
+    %Protocols = protocols(Opt),
+
+    {ok, Pid} = gun:open(Host, Port, #{ 'transport' => Transport, 'protocols' => [http] }),
     {ok, _} = gun:await_up(Pid),
 
     Path = erlmachine_network:path(Opt), Ref = gun:ws_upgrade(Pid, Path),
@@ -118,14 +120,12 @@ shutdown(UID, Reason, State) ->
 
 %%% utils
 
--spec opt({Key::binary(), V::term()}, Acc::map()) -> map().
-opt({<<"transport">>, Transport}, Acc) when Transport == <<"tcp">>;
-                                            Transport == <<"tls">> ->
-    Acc#{ 'transport' => Transport };
-opt({<<"protocols">>, Protocols}, Acc) when is_list(Protocols) ->
-    Res = [binary_to_atom(P, utf8)|| P <- Protocols, P == <<"http">>, P == <<"http2">>],
-    Acc#{ 'protocols' => Res};
-opt(_, Acc) ->
-    Acc.
-
+-spec transport(Opt::[term()]) -> tcp | tls.
+transport(Opt) ->
+    Tls = lists:member(<<"tls">>, Opt),
+    if Tls ->
+            tls;
+       true  ->
+            tcp
+    end.
 
