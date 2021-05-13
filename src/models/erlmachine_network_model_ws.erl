@@ -69,6 +69,8 @@ pressure(_UID, {gun_ws, _Pid, _Ref, Frame}, State) when Frame == 'close';
 pressure(_UID, {gun_ws, _Pid, Ref, {Tag, Msg}}, #{ ref := Ref } = State) when Tag == 'text';
                                                                               Tag == 'binary';
                                                                               Tag == 'close' ->
+    io:format("~n~p:pressure(~p)~n", [?MODULE, Msg]),
+
     Doc = erlmachine:document(Ref, Msg),
 
     erlmachine:success(Doc, State);
