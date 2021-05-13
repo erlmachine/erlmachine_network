@@ -1,0 +1,15 @@
+{application, erlmachine_network,
+ [
+  {description, "Erlmachine extensions which connect to the network"},
+  {vsn, "3.0.0"},
+  {modules, []},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, []},
+
+  {licenses, ["apache-2.0"]},
+  {links, [{"Github", "https://github.com/Erlmachine/erlmachine_network"}]}
+ ]}.
