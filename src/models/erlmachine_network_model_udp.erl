@@ -13,10 +13,7 @@
 
 -spec startup(UID::uid(), State::state(), Opt::[term()], Env::map()) ->
                   success(state()).
-startup(UID, State, Opt, Env) ->
-    %% TODO: To provide test cases parametrization through Env;
-    io:format("~n~p:startup(~p, ~p, ~p, ~p)~n", [?MODULE, UID, State, Opt, Env]),
-
+startup(_UID, State, _Opt, Env) ->
     {ok, Socket} = gen_udp:open(0, [binary]),
 
     Host = maps:get(<<"host">>, Env), true = is_binary(Host), Host2 = host(Host),
@@ -44,31 +41,31 @@ process(_UID, Event, State) ->
 
 -spec execute(UID::uid(), Action::term(), State::state()) ->
                      success(term(), state()).
-execute(UID, Action, State) ->
-    io:format("~n~p:execute(~p, ~p, ~p)~n", [?MODULE, UID, Action, State]),
-
+execute(_UID, _Action, State) ->
     erlmachine:success(ignore, State).
 
 -spec pressure(UID::uid(), Load::term(), State::state()) ->
                       success(term(), state()).
 pressure(_UID, {udp, _Pid, Ip, _Port, Packet}, State) ->
-    Doc = erlmachine:document(Ip, Packet),
+    Host = maps:get(host, State), Port = maps:get(port, State),
+
+    Header = #{ host => Host, port => Port },
+    Doc = erlmachine:document(Header, Ip, Packet),
 
     erlmachine:success(Doc, State);
 
 pressure(UID, Load, State) ->
+    %% TODO: To provide logging;
     io:format("~n~p:pressure(~p, ~p, ~p)~n", [?MODULE, UID, Load, State]),
 
     erlmachine:success(State).
 
 -spec shutdown(UID::uid(), Reason::term(), State::state()) ->
                       success().
-shutdown(UID, Reason, State) ->
-    io:format("~n~p:shutdown(~p, ~p, ~p)~n", [?MODULE, UID, State, Reason]),
+shutdown(_UID, _Reason, State) ->
     Socket = maps:get(socket, State), ok = gen_udp:close(Socket),
 
     erlmachine:success().
-
 
 %%% utils
 

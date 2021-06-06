@@ -1,7 +1,7 @@
 {application, erlmachine_network,
  [
-  {description, "Erlmachine extensions which connect to the network"},
-  {vsn, "3.0.0"},
+  {description, "Erlmachine extensions to implement network protocols"},
+  {vsn, "1.0.0"},
   {modules, []},
   {registered, []},
   {applications, [

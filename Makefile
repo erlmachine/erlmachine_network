@@ -1,6 +1,6 @@
 PROJECT = erlmachine_network
-PROJECT_DESCRIPTION = New project
-PROJECT_VERSION = 0.1.0
+PROJECT_DESCRIPTION = Erlmachine extensions to implement network protocols
+PROJECT_VERSION = 1.0.0
 
 DEPS = erlmachine gun
 
