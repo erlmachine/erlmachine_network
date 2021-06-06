@@ -47,6 +47,7 @@ process(_UID, Event, State) ->
 -spec execute(UID::uid(), Action::term(), State::state()) ->
                      success(term(), state()) | failure(term(), term(), state()).
 execute(_UID, Action, State) ->
+    %% TODO To implement upgrade status check;
     Command = erlmachine:command_name(Action), _Args = erlmachine:body(Action),
 
     try Command of
@@ -75,6 +76,10 @@ pressure(_UID, {gun_ws, _Pid, Ref, {Tag, Msg}}, #{ ref := Ref } = State) when Ta
     Doc = erlmachine:document(Header, Tag, Msg),
 
     erlmachine:success(Doc, State);
+
+pressure(_UID, {gun_upgrade, _Pid, _Ref, [<<"websocket">>], _Headers}, State) ->
+    %% TODO To implement upgraded state;
+    erlmachine:success(State);
 
 pressure(_UID, {gun_up, _Pid, _Proto}, State) ->
     erlmachine:success(State);
