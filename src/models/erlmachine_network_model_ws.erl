@@ -33,9 +33,11 @@ startup(_UID, State, Opt, Env) ->
 -spec process(UID::uid(), Event::term(), State::state()) ->
                      success(state()) | failure(term(), term(), state()).
 process(_UID, Event, State) ->
-    Frame = erlmachine:body(Event), Pid = maps:get(pid, State),
+    Frame = erlmachine:body(Event),
+    Pid = maps:get(pid, State), Ref = maps:get(ref, State),
+
     try
-        ok = gun:ws_send(Pid, Frame),
+        ok = gun:ws_send(Pid, Ref, Frame),
 
         erlmachine:success(State)
     catch E:R ->
