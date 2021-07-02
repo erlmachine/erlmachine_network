@@ -23,7 +23,7 @@
 -type stream() :: #stream{}.
 
 -spec startup(UID::uid(), State::state(), Opt::list(), Env::map()) ->
-                  success(state()) | failure(term(), term(), state()).
+                  success(state()).
 startup(UID, State, Opt, Env) ->
     io:format("~n~p:startup(~p, ~p, ~p, ~p)~n", [?MODULE, UID, State, Opt, Env]),
 
@@ -35,7 +35,7 @@ startup(UID, State, Opt, Env) ->
     {ok, Pid} = gun:open(Host, Port, #{ 'transport' => Transport, 'protocols' => [http] }),
     {ok, _} = gun:await_up(Pid),
 
-    Tid = ets:new(?MODULE, []),
+    Tid = ets:new(?MODULE, [{keypos, #stream.ref}]),
 
     erlmachine:success(State#{ pid => Pid, tid => Tid }).
 
@@ -46,7 +46,8 @@ process(_UID, Motion, State) ->
 
     Command = erlmachine:command_name(Motion), Args = erlmachine:body(Motion),
 
-    Path = path(Args), Headers = headers(Args), Body = body(Args),
+    Path = path(Args),
+    Headers = headers(Args), Body = body(Args),
 
     try
         Ref = case Command of
@@ -105,13 +106,16 @@ pressure(_UID, {gun_data, Pid, Ref, IsFin, Data}, State) ->
     Pid = maps:get(pid, State), Tid = maps:get(tid, State),
 
     [Stream] = lookup(Tid, Ref),
-    Body = Stream#stream.body, Body2 = <<Body/binary, Data/binary>>,
 
+    Body = Stream#stream.body, Body2 = <<Body/binary, Data/binary>>,
     case IsFin of
         fin ->
             true = delete(Tid, Ref),
 
-            Motion = Stream#stream.motion, Doc = erlmachine:document(Ref, Body2),
+            Motion = Stream#stream.motion, Headers = Stream#stream.headers, Status = Stream#stream.status,
+            Header = #{ status => Status, headers => Headers },
+
+            Doc = erlmachine:document(Header, Ref, Body2),
             Reply = erlmachine:reply(Motion, Doc),
 
             erlmachine:success(Reply, State);

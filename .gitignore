@@ -18,3 +18,7 @@ _checkouts/
 
 # custom
 erlmachine_network.d
+.DS_Store
+.erlang.mk
+ebin
+logs

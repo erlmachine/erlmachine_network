@@ -1,0 +1,40 @@
+# https://www.postman.com/postman/workspace/published-postman-templates/documentation/631643-f695cab7-6878-eb55-7943-ad88e1ccfd65?ctx=documentation
+
+vertices:
+  "supervisor":
+    type: supervisor
+    model:
+      module: erlmachine_sup_model_sample
+    prototype:
+      module: erlmachine_sup_prototype_def
+      options:
+        - strategy: rest_for_one
+    tags: ["ct"]
+    description: "Root supervisor"
+
+  "http":
+    type: worker
+    model:
+      module: erlmachine_network_model_http
+      options:
+        - tls
+    prototype:
+      module: erlmachine_prototype_def
+    tags: ["ct", "http"]
+    env:
+      host: "postman-echo.com"
+      port: 443
+    description: "HTTP client"
+
+  "reply":
+    type: worker
+    model:
+      module: erlmachine_eip_model_reply
+    prototype:
+      module: erlmachine_prototype_def
+    tags: ["ct"]
+    description: "Request-reply pattern implementation"
+
+edges:
+  - supervisor: [reply, http]
+  - http: reply
