@@ -123,7 +123,7 @@ pressure(UID, {gun_data, Pid, Ref, IsFin, Data} = Load, State) ->
             true = delete(Tid, Ref),
 
             Motion = Stream#stream.motion, Headers = Stream#stream.headers, Status = Stream#stream.status,
-            Header = #{ status => Status, path => Path, headers => Headers },
+            Header = #{ status => Status, headers => Headers },
 
             Doc = erlmachine:document(Header, Ref, Body2),
             Reply = erlmachine:reply(Motion, Doc),
