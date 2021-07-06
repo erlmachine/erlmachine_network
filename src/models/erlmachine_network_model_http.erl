@@ -192,7 +192,14 @@ transport(Opt) ->
 -spec path(Args::map()) -> list().
 path(Args) ->
     Path = maps:get(path, Args), true = is_list(Path),
-    Path.
+    Query = maps:get(query, Args, []), true = is_list(Query),
+
+    if Query == [] ->
+            Path;
+        true ->
+            Path2 = lists:flatten([Path, "?", cow_qs:qs(Query)]),
+            Path2
+    end.
 
 -spec headers(Args::map()) -> [term()].
 headers(Args) ->
