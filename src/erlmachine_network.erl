@@ -3,6 +3,8 @@
 -export([host/1, port/1]).
 -export([path/1]).
 
+-export([debug/1]).
+
 -type host() :: list().
 -type path() :: list().
 
@@ -23,3 +25,7 @@ port(Env) ->
     Port = maps:get(<<"port">>, Env, 80), true = is_integer(Port),
     Port.
 
+-spec debug(Env::map()) -> boolean().
+debug(Env) ->
+    Debug = maps:get(<<"debug">>, Env, false), true = is_boolean(Debug),
+    Debug.

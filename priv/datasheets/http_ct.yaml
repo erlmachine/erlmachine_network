@@ -24,6 +24,7 @@ vertices:
     env:
       host: "postman-echo.com"
       port: 443
+      debug: true
     description: "HTTP client"
 
   "reply":
