@@ -36,7 +36,7 @@ startup(UID, State, Opt, Env) ->
     {ok, Pid} = gun:open(Host, Port, #{ 'transport' => Transport, 'protocols' => [http] }),
     {ok, _} = gun:await_up(Pid),
 
-    Tid = ets:new(?MODULE, [{keypos, #stream.ref}]),
+    Tid = ets:new(?MODULE, [{keypos, #stream.ref}, {write_concurrency, true}, {read_concurrency, true}]),
 
     erlmachine:success(State#{ pid => Pid, tid => Tid, debug => Debug }).
 
