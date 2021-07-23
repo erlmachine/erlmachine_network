@@ -15,6 +15,7 @@ path(Env) ->
     binary_to_list(Path).
 
 %%% Env
+
 -spec host(Env::map()) -> host().
 host(Env) ->
     Host = maps:get(<<"host">>, Env, <<"localhost">>), true = is_binary(Host),

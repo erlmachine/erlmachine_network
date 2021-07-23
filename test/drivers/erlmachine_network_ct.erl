@@ -38,9 +38,7 @@ call(Command, Vertex) ->
 stop() ->
     gen_server:stop(id()).
 
-%%%===================================================================
 %%% gen_server behaviour
-%%%===================================================================
 
 -record(state, { graph::graph(), root::vertex() }).
 
