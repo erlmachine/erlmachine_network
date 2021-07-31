@@ -14,13 +14,13 @@
 
 -type state() :: map().
 
--spec startup(UID::uid(), State::state(), Opt::list(), Env::map()) ->
+-spec startup(UID::uid(), State::state(), Opt::map(), Env::map()) ->
                   success(state()).
 startup(_UID, State, Opt, Env) ->
     Host = erlmachine_network:host(Env), Port = erlmachine_network:port(Env),
     Path = erlmachine_network:path(Env),
 
-    Transport = transport(Opt),
+    Transport = erlmachine_network:transport(Opt),
     %Protocols = protocols(Opt),
 
     {ok, Pid} = gun:open(Host, Port, #{ 'transport' => Transport, 'protocols' => [http] }),
@@ -105,15 +105,3 @@ shutdown(_UID, _Reason, State) ->
     Pid = maps:get(pid, State), ok = gun:close(Pid),
 
     erlmachine:success().
-
-%%% utils
-
--spec transport(Opt::[term()]) -> tcp | tls.
-transport(Opt) ->
-    Tls = lists:member(<<"tls">>, Opt),
-    if Tls ->
-            tls;
-       true  ->
-            tcp
-    end.
-

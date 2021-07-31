@@ -22,7 +22,7 @@
 
 -type stream() :: #stream{}.
 
--spec startup(UID::uid(), State::state(), Opt::list(), Env::map()) ->
+-spec startup(UID::uid(), State::state(), Opt::map(), Env::map()) ->
                   success(state()).
 startup(UID, State, Opt, Env) ->
     Debug = erlmachine_network:debug(Env),
@@ -30,7 +30,7 @@ startup(UID, State, Opt, Env) ->
 
     Host = erlmachine_network:host(Env), Port = erlmachine_network:port(Env),
 
-    Transport = transport(Opt),
+    Transport = erlmachine_network:transport(Opt),
     %Protocols = protocols(Opt),
 
     {ok, Pid} = gun:open(Host, Port, #{ 'transport' => Transport, 'protocols' => [http] }),
@@ -179,15 +179,6 @@ shutdown(UID, Reason, State) ->
     erlmachine:success().
 
 %%% utils
-
--spec transport(Opt::[term()]) -> tcp | tls.
-transport(Opt) ->
-    Tls = lists:member(<<"tls">>, Opt),
-    if Tls ->
-            tls;
-       true  ->
-            tcp
-    end.
 
 -spec path(Args::map()) -> list().
 path(Args) ->

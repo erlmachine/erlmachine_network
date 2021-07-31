@@ -11,7 +11,7 @@
 
 -type state() :: map().
 
--spec startup(UID::uid(), State::state(), Opt::[term()], Env::map()) ->
+-spec startup(UID::uid(), State::state(), Opt::map(), Env::map()) ->
                   success(state()).
 startup(_UID, State, _Opt, Env) ->
     {ok, Socket} = gen_udp:open(0, [binary]),

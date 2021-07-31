@@ -8,7 +8,8 @@ vertices:
     prototype:
       module: erlmachine_sup_prototype_def
       options:
-        - strategy: rest_for_one
+        flags:
+          strategy: rest_for_one
     tags: ["ct"]
     description: "Root supervisor"
 
@@ -17,7 +18,7 @@ vertices:
     model:
       module: erlmachine_network_model_http
       options:
-        - tls
+        transport: tls
     prototype:
       module: erlmachine_prototype_def
     tags: ["ct", "http"]
