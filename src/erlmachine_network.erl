@@ -1,5 +1,7 @@
 -module(erlmachine_network).
 
+-export([priv_dir/0, filename/1]).
+
 -export([transport/1]).
 
 -export([host/1, port/1]).
@@ -7,8 +9,20 @@
 
 -export([debug/1]).
 
+-include_lib("erlmachine/include/erlmachine_system.hrl").
+
 -type host() :: list().
 -type path() :: list().
+
+%%% Library API
+
+-spec priv_dir() -> file:filename().
+priv_dir() ->
+    code:priv_dir(?MODULE).
+
+-spec filename(Path::list()) -> list().
+filename(Path) ->
+    filename:join(priv_dir(), Path).
 
 %%% Opt
 

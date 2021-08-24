@@ -24,10 +24,10 @@ init_per_suite(Config) ->
     application:ensure_all_started(erlmachine),
     application:ensure_all_started(gun),
 
-    Path = filename:join(code:priv_dir('erlmachine_network'), "datasheets/http_ct.yaml"),
-    {ok, Datasheet} = erlmachine_graph:datasheet(Path),
+    Path = erlmachine_network:filename("datasheets/http_ct.yaml"),
+    {ok, T} = erlmachine_graph:template(Path),
 
-    {ok, Pid} = erlmachine_network_ct:start(Datasheet), true = is_pid(Pid),
+    {ok, Pid} = erlmachine_network_ct:start(T), true = is_pid(Pid),
 
     Setup = [],
     lists:concat([Setup, Config]).
@@ -69,7 +69,7 @@ end_per_testcase(_TestCase, _Config) ->
 %% Description: Returns a list of test case group definitions.
 %%--------------------------------------------------------------------
 groups() ->
-    [{api, [parallel], [get, post, put, patch, delete]}].
+    [{'api', [parallel], [get, post, put, patch, delete]}].
 
 %%--------------------------------------------------------------------
 %% Function: all() -> GroupsAndTestCases | {skip,Reason}
@@ -86,7 +86,7 @@ groups() ->
 %%              are to be executed.
 %%--------------------------------------------------------------------
 all() ->
-    [{group, api}].
+    [{group, 'api'}].
 
 %%--------------------------------------------------------------------
 %% Function: TestCase(Config0) ->
