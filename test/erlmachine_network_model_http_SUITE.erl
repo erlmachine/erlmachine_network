@@ -24,8 +24,8 @@ init_per_suite(Config) ->
     application:ensure_all_started(erlmachine),
     application:ensure_all_started(gun),
 
-    Path = erlmachine_network:filename("datasheets/http_ct.yaml"),
-    {ok, T} = erlmachine_graph:template(Path),
+    Name = erlmachine_network:filename("datasheets/http_ct.yaml"),
+    {ok, T} = erlmachine_graph:template(Name),
 
     {ok, Pid} = erlmachine_network_ct:start(T), true = is_pid(Pid),
 
