@@ -1,5 +1,6 @@
 -module(erlmachine_network_model_http).
-%% Based on Gun HTTP client: https://ninenines.eu/docs/en/gun/2.0/guide/;
+%% NOTE: https://ninenines.eu/docs/en/gun/2.0/guide/
+
 -behaviour(erlmachine_worker_model).
 
 -export([startup/4]).
@@ -14,44 +15,44 @@
 
 -record (stream, {
                   ref::reference(),
-                  status::integer(), headers = []::[tuple()], body = <<>>::binary(),
+
+                  headers = []::[tuple()], body = <<>>::binary(),
+                  status::integer(),
+
                   motion::term()
                 }).
 
--type state() :: map().
-
 -type stream() :: #stream{}.
+
+-type state() :: map().
 
 -spec startup(UID::uid(), State::state(), Opt::map(), Env::map()) ->
                   success(state()).
-startup(UID, State, Opt, Env) ->
-    Debug = erlmachine_network:debug(Env),
-    Debug andalso io:format(user, "~n~p:startup(~p, ~p, ~p, ~p)~n", [?MODULE, UID, State, Opt, Env]),
+startup(_UID, State, Opt, Env) ->
+    Host = erlmachine_network:host(Env),
+    Port = erlmachine_network:port(Env),
 
-    Host = erlmachine_network:host(Env), Port = erlmachine_network:port(Env),
-
-    Transport = erlmachine_network:transport(Opt),
+    T = erlmachine_network:transport(Opt),
     %Protocols = protocols(Opt),
 
-    {ok, Pid} = gun:open(Host, Port, #{ 'transport' => Transport, 'protocols' => [http] }),
+    {ok, Pid} = gun:open(Host, Port, #{ 'transport' => T, 'protocols' => [http] }),
     {ok, _} = gun:await_up(Pid),
 
-    Tid = ets:new(?MODULE, [{keypos, #stream.ref}, {write_concurrency, true}, {read_concurrency, true}]),
+    Tid = ets:new(?MODULE, [{'keypos', #stream.ref}, {'write_concurrency', true}, {'read_concurrency', true}]),
 
-    erlmachine:success(State#{ pid => Pid, tid => Tid, debug => Debug }).
+    erlmachine:success(State#{ 'pid' => Pid, 'tid' => Tid }).
 
 -spec process(UID::uid(), Motion::term(), State::state()) ->
                      success(state()) | failure(term(), term(), state()).
-process(UID, Motion, State) ->
-    Debug = maps:get(debug, State),
-    Debug andalso io:format(user, "~n~p:process(~p, ~p, ~p)~n", [?MODULE, UID, Motion, State]),
+process(_UID, Motion, State) ->
+    Pid = maps:get(pid, State),
+    Tid = maps:get(tid, State),
 
-    Pid = maps:get(pid, State), Tid = maps:get(tid, State),
+    Command = erlmachine:command_name(Motion),
+    Args = erlmachine:body(Motion),
 
-    Command = erlmachine:command_name(Motion), Args = erlmachine:body(Motion),
-
-    Path = path(Args),
-    Headers = headers(Args), Body = body(Args),
+    Path = path(Args), Headers = headers(Args),
+    Body = body(Args),
 
     try
         Ref = case Command of
@@ -70,7 +71,6 @@ process(UID, Motion, State) ->
                   'options' ->
                       gun:options(Pid, Path, Headers)
               end,
-
         true = insert(Tid, Ref, Motion),
 
         erlmachine:success(State)
@@ -81,7 +81,8 @@ process(UID, Motion, State) ->
 -spec execute(UID::uid(), Action::term(), State::state()) ->
                      success(term(), state()) | failure(term(), term(), state()).
 execute(_UID, Action, State) ->
-    Command = erlmachine:command_name(Action), _Args = erlmachine:body(Action),
+    Command = erlmachine:command_name(Action),
+    _Args = erlmachine:body(Action),
 
     try Command of
         'info' ->
@@ -92,14 +93,12 @@ execute(_UID, Action, State) ->
             erlmachine:failure(E, R, State)
     end.
 
-%% TODO: To provide optional table monitoring capabilities;
+%% TODO: Optional table monitoring;
 -spec pressure(UID::uid(), Load::term(), State::state()) ->
                       success(state()) | success(term(), state()).
-pressure(UID, {gun_response, Pid, Ref, IsFin, Status, Headers} = Load, State) ->
-    Debug = maps:get(debug, State),
-    Debug andalso io:format(user, "~n~p:pressure(~p, ~p, ~p)~n", [?MODULE, UID, Load, State]),
-
-    Pid = maps:get(pid, State), Tid = maps:get(tid, State),
+pressure(_UID, {gun_response, Pid, Ref, IsFin, Status, Headers}, State) ->
+    Pid = maps:get(pid, State),
+    Tid = maps:get(tid, State),
 
     case IsFin of
         fin ->
@@ -109,11 +108,9 @@ pressure(UID, {gun_response, Pid, Ref, IsFin, Status, Headers} = Load, State) ->
     end,
     erlmachine:success(State);
 
-pressure(UID, {gun_data, Pid, Ref, IsFin, Data} = Load, State) ->
-    Debug = maps:get(debug, State),
-    Debug andalso io:format(user, "~n~p:pressure(~p, ~p, ~p)~n", [?MODULE, UID, Load, State]),
-
-    Pid = maps:get(pid, State), Tid = maps:get(tid, State),
+pressure(_UID, {gun_data, Pid, Ref, IsFin, Data}, State) ->
+    Pid = maps:get(pid, State),
+    Tid = maps:get(tid, State),
 
     [Stream] = lookup(Tid, Ref),
 
@@ -136,49 +133,45 @@ pressure(UID, {gun_data, Pid, Ref, IsFin, Data} = Load, State) ->
     end;
 
 pressure(_UID, {gun_up, _Pid, _Proto}, State) ->
-    %% TODO: To provide logging;
+    %% TODO: Logging;
     erlmachine:success(State);
 
 pressure(_UID, {gun_down, _Pid, _Proto, _Reason, _Streams}, State) ->
-    %% TODO: To provide logging;
+    %% TODO: Logging;
     erlmachine:success(State);
 
 pressure(_UID, {gun_tunnel_up, _Pid, _Ref, _Proto}, State) ->
-    %% TODO: To provide logging;
+    %% TODO: Logging;
     erlmachine:success(State);
 
 pressure(_UID, {gun_error, _Pid, _Ref, Reason}, State) ->
-    %% TODO: To provide logging;
+    %% TODO: Logging;
     erlmachine:failure(Reason, State);
 
 pressure(_UID, {gun_push, _Pid, _Ref, _NewRef, _Method, _URI, _Headers}, State) ->
-    %% TODO: To provide logging;
+    %% TODO: Logging;
     erlmachine:success(State);
 
 pressure(_UID, {gun_inform, _Pid, _Ref, _Status, _Headers}, State) ->
-    %% TODO: To provide logging;
+    %% TODO: Logging;
     erlmachine:success(State);
 
 pressure(_UID, {gun_trailers, _Pid, _Ref, _Headers}, State) ->
-    %% TODO: To provide logging;
+    %% TODO: Logging;
     erlmachine:success(State);
 
-pressure(UID, Load, State) ->
-    io:format("~n~p:pressure(~p, ~p, ~p)~n", [?MODULE, UID, Load, State]),
-
+pressure(_UID, _Load, State) ->
+    %% TODO: Logging;
     erlmachine:success(State).
 
 -spec shutdown(UID::uid(), Reason::term(), State::state()) ->
                       success().
-shutdown(UID, Reason, State) ->
-    Debug = maps:get(debug, State),
-    Debug andalso io:format(user, "~n~p:shutdown(~p, ~p, ~p)~n", [?MODULE, UID, State, Reason]),
-
-    Tid = maps:get(tid, State), ets:delete(Tid),
+shutdown(_UID, _Reason, State) ->
+    Tid = maps:get(tid, State), true = ets:delete(Tid),
 
     erlmachine:success().
 
-%%% utils
+%%% Utils
 
 -spec path(Args::map()) -> list().
 path(Args) ->
@@ -203,6 +196,7 @@ body(Args) ->
     Body.
 
 %%% Table API
+
 -spec insert(Tid::term(), Ref::reference(), Motion::term()) ->
                     true.
 insert(Tid, Ref, Motion) ->

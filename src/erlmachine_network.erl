@@ -7,8 +7,6 @@
 -export([host/1, port/1]).
 -export([path/1]).
 
--export([debug/1]).
-
 -include_lib("erlmachine/include/erlmachine_system.hrl").
 
 -type host() :: list().
@@ -28,9 +26,8 @@ filename(Path) ->
 
 -spec transport(Opt::map()) -> tcp | tls.
 transport(Opt) ->
-    Transport = maps:get(<<"transport">>, Opt, <<"tcp">>), true = is_binary(Transport),
-
-    binary_to_atom(Transport).
+    T = maps:get(<<"transport">>, Opt, <<"tcp">>), true = is_binary(T),
+    binary_to_atom(T).
 
 %%% Env
 -spec path(Env::map()) -> path().
@@ -49,8 +46,3 @@ host(Env) ->
 port(Env) ->
     Port = maps:get(<<"port">>, Env, 80), true = is_integer(Port),
     Port.
-
--spec debug(Env::map()) -> boolean().
-debug(Env) ->
-    Debug = maps:get(<<"debug">>, Env, false), true = is_boolean(Debug),
-    Debug.
