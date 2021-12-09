@@ -40,7 +40,12 @@ startup(_UID, State, Opt, Env) ->
 
     Tid = ets:new(?MODULE, [{'keypos', #stream.ref}, {'write_concurrency', true}, {'read_concurrency', true}]),
 
-    erlmachine:success(State#{ 'pid' => Pid, 'tid' => Tid }).
+    erlmachine:success(State#{
+                              'pid' => Pid, 'tid' => Tid,
+
+                              'host' => Host,
+                              'port' => Port
+                             }).
 
 -spec process(UID::uid(), Motion::term(), State::state()) ->
                      success(state()) | failure(term(), term(), state()).
@@ -119,10 +124,18 @@ pressure(_UID, {gun_data, Pid, Ref, IsFin, Data}, State) ->
         fin ->
             true = delete(Tid, Ref),
 
-            Motion = Stream#stream.motion, Headers = Stream#stream.headers, Status = Stream#stream.status,
-            Header = #{ status => Status, headers => Headers },
+            Motion = Stream#stream.motion,
+            Args = erlmachine:body(Motion), Path = maps:get(path, Args),
 
-            Doc = erlmachine:document(Header, Ref, Body2),
+            Headers = Stream#stream.headers,
+
+            Status = Stream#stream.status,
+            Header = #{
+                       status => Status,
+                       path => Path, headers => Headers
+                      },
+
+            Doc = erlmachine:document(Header, _Meta = Path, Body2),
             Reply = erlmachine:reply(Motion, Doc),
 
             erlmachine:success(Reply, State);

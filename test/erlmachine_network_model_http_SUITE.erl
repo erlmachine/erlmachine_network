@@ -56,7 +56,9 @@ all() ->
 %%--------------------------------------------------------------------
 
 get(_Config) ->
-    Command = erlmachine:command('get', #{ path => "/get", query => [{<<"foo">>, <<"bar1">>}]}),
+    Header = #{ meta => ct },
+    Args = #{ path => "/get", query => [{<<"foo">>, <<"bar1">>}] },
+    Command = erlmachine:command(Header, 'get', Args),
 
     Res = erlmachine_network_ct:call(Command, _Vertex = <<"http">>), true = is_map(Res),
     ok = assert(Res).
