@@ -33,9 +33,13 @@ startup(_UID, State, Opt, Env) ->
     Port = erlmachine_network:port(Env),
 
     T = erlmachine_network:transport(Opt),
+    Trace = erlmachine_network:trace(Opt),
     %Protocols = protocols(Opt),
 
-    {ok, Pid} = gun:open(Host, Port, #{ 'transport' => T, 'protocols' => [http] }),
+    {ok, Pid} = gun:open(Host, Port, #{
+                                       'transport' => T, 'protocols' => [http],
+                                       'trace' => Trace
+                                      }),
     {ok, _} = gun:await_up(Pid),
 
     Tid = ets:new(?MODULE, [{'keypos', #stream.ref}, {'write_concurrency', true}, {'read_concurrency', true}]),

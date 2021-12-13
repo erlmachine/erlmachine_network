@@ -3,6 +3,7 @@
 -export([priv_dir/0, filename/1]).
 
 -export([transport/1]).
+-export([trace/1]).
 
 -export([host/1, port/1]).
 -export([path/1]).
@@ -28,6 +29,11 @@ filename(Path) ->
 transport(Opt) ->
     T = maps:get(<<"transport">>, Opt, <<"tcp">>), true = is_binary(T),
     binary_to_atom(T).
+
+-spec trace(Opt::map()) -> boolean().
+trace(Opt) ->
+    Trace = maps:get(<<"trace">>, Opt, false),
+    Trace.
 
 %%% Env
 -spec path(Env::map()) -> path().

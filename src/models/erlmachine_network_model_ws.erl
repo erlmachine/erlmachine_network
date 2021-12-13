@@ -22,9 +22,13 @@ startup(_UID, State, Opt, Env) ->
     Path = erlmachine_network:path(Env),
 
     T = erlmachine_network:transport(Opt),
+    Trace = erlmachine_network:trace(Opt),
     %Protocols = protocols(Opt),
 
-    {ok, Pid} = gun:open(Host, Port, #{ 'transport' => T, 'protocols' => [http] }),
+    {ok, Pid} = gun:open(Host, Port, #{
+                                       'transport' => T, 'protocols' => [http],
+                                       'trace' => Trace
+                                      }),
     {ok, _} = gun:await_up(Pid),
 
     Ref = gun:ws_upgrade(Pid, Path),
@@ -97,10 +101,13 @@ pressure(_UID, {gun_upgrade, _Pid, _Ref, [<<"websocket">>], _Headers}, State) ->
 pressure(_UID, {gun_up, _Pid, _Proto}, State) ->
     erlmachine:success(State);
 
-pressure(_UID, {gun_down, _Pid, _Proto, closed, _}, State) ->
+pressure(_UID, {gun_down, Pid, _Proto, closed, _}, State) ->
+    Path = maps:get(path, State),
+
+    Ref = gun:ws_upgrade(Pid, Path),
     %% TODO: Throw and restart handle {gun_down,<0.185.0>,http,closed,[]}
     %% MRef = monitor(process, ConnPid).
-    erlmachine:success(State);
+    erlmachine:success(State#{ ref => Ref });
 
 pressure(_UID, {gun_error, _Pid, _Ref, Reason}, State) ->
     erlmachine:failure(Reason, State);
