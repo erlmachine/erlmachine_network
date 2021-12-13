@@ -22,11 +22,17 @@ startup(_UID, State, Opt, Env) ->
     Path = erlmachine_network:path(Env),
 
     T = erlmachine_network:transport(Opt),
+    Retry = erlmachine_network:retry(Opt),
+    Timeout = erlmachine_network:retry_timeout(Opt),
+
     Trace = erlmachine_network:trace(Opt),
     %Protocols = protocols(Opt),
 
     {ok, Pid} = gun:open(Host, Port, #{
                                        'transport' => T, 'protocols' => [http],
+                                       'retry' => Retry,
+                                       'retry_timeout' => Timeout,
+
                                        'trace' => Trace
                                       }),
     {ok, _} = gun:await_up(Pid),
