@@ -6,7 +6,7 @@ DEPS = erlmachine gun
 
 TEST_DEPS = erlmachine_eip
 
-dep_erlmachine = git https://github.com/Erlmachine/erlmachine
+dep_erlmachine = git https://github.com/erlmachine/erlmachine
 dep_gun = git https://github.com/ninenines/gun
 
 dep_erlmachine_eip = git https://github.com/Erlmachine/erlmachine_eip.git
